@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up - PRODEX</title>
+  <style>
+    /* ===== H1 Heading ===== */
+    h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+      color: #333;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* Accent color for brand name */
+    .brand-name {
+      color: #34A853;
+    }
+
+    /* ===== Container ===== */
+    .signup-container {
+      text-align: center;
+      margin-top: 30px;
+      background: rgba(255, 255, 255, 0.85);
+      padding: 50px;
+      border-radius: 20px;
+      width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ===== Heading ===== */
+    .signup-heading {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 25px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: linear-gradient(
+        to right,
+        #4285F4 0%,   /* Blue */
+        #EA4335 25%,  /* Red */
+        #FBBC05 50%,  /* Yellow */
+        #34A853 75%,  /* Green */
+        #EA4335 100%  /* Red */
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+      animation: fadeIn 1s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(-10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== Input Fields ===== */
+    .signup-form input {
+      width: 80%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      outline: none;
+      transition: 0.3s;
+    }
+
+    .signup-form input:focus {
+      border-color: #34A853;
+      box-shadow: 0 0 8px rgba(52, 168, 83, 0.4);
+    }
+
+    /* ===== Button ===== */
+    .signup-btn {
+      width: 85%;
+      padding: 12px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      color: white;
+      font-weight: 600;
+      background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335);
+      background-size: 300%;
+      transition: 0.5s;
+      cursor: pointer;
+    }
+
+    .signup-btn:hover {
+      background-position: right center;
+      transform: scale(1.03);
+    }
+
+    /* ===== Messages ===== */
+    .error-message {
+      color: #EA4335;
+      font-weight: 500;
+      margin-bottom: 15px;
+    }
+
+    .success-message {
+      color: #34A853;
+      font-weight: 500;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to <span class="brand-name">PRODEX</span></h1>
+
+  <div class="signup-container">
+    <h2 class="signup-heading">Create an Account</h2>
+
+    {% if error %}
+      <p class="error-message">{{ error }}</p>
+    {% endif %}
+    {% if success %}
+      <p class="success-message">{{ success }}</p>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('signup') }}" class="signup-form">
+      <input type="email" name="email" placeholder="Email" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit" class="signup-btn">Sign Up</button>
+    </form>
+  </div>
+</body>
+</html>
+

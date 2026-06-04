@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+*.log
+.env
+service_account.json
+nohup.out
+*.sqlite3
+.DS_Store

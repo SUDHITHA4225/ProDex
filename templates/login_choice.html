@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Choice - Prodex</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+  <style>
+    /* -------------------- PAGE CONTAINER -------------------- */
+    .login-choice-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 75vh;
+      text-align: center;
+      color: #333;
+    }
+
+    /* -------------------- PRODEX TITLE -------------------- */
+    .login-choice-container h1 {
+      font-size: 3rem;
+      margin-bottom: 40px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      background: linear-gradient(90deg, #007bff, #28a745);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+      animation: fadeIn 1.2s ease-in-out;
+    }
+
+    /* -------------------- BUTTON STYLES -------------------- */
+    .choice-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 14px 40px;
+      margin: 0 15px;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+    }
+
+    .choice-btn:hover {
+      background-color: #0056b3;
+      box-shadow: 0 6px 15px rgba(0, 86, 179, 0.4);
+      transform: translateY(-2px);
+    }
+
+    /* Signup Button Color */
+    .signup-btn {
+      background-color: #28a745;
+      box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+    }
+
+    .signup-btn:hover {
+      background-color: #218838;
+      box-shadow: 0 6px 15px rgba(33, 136, 56, 0.4);
+    }
+
+    /* -------------------- FADE ANIMATION -------------------- */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* -------------------- RESPONSIVE -------------------- */
+    @media (max-width: 600px) {
+      .choice-btn {
+        display: block;
+        width: 200px;
+        margin: 10px auto;
+      }
+      .login-choice-container h1 {
+        font-size: 2.2rem;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- Simple Header -->
+  <header class="flex justify-between items-center px-8 py-4 bg-white shadow">
+    <a href="/" class="text-2xl font-bold text-blue-600">PRODEX</a>
+    <a href="/" class="text-gray-600 hover:text-blue-600 text-sm">
+      <i class="fas fa-home mr-1"></i> Back to Home
+    </a>
+  </header>
+
+  <!-- Main Content -->
+  <div class="login-choice-container">
+    <h1>Welcome to <span class="brand-name">PRODEX</span></h1>
+    <div>
+      <a href="{{ url_for('login') }}">
+        <button class="choice-btn">Login</button>
+      </a>
+      <a href="{{ url_for('signup') }}">
+        <button class="choice-btn signup-btn">Sign Up</button>
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>
+

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prodex - My Wishlist</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+
+    <style>
+        .product-card { border: 1px solid #e5e7eb; }
+        .product-card:hover { border-color: #2563EB; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+    
+    <div class="container mx-auto px-4 py-12">
+        <h1 class="text-4xl font-extrabold mb-6 text-gray-800 border-b pb-3 flex items-center">
+            <a href="/" class="text-blue-600 hover:text-blue-800 text-3xl mr-4" title="Back to Search"><i class="fas fa-arrow-left"></i></a>
+            Your Wishlist ({{ items | length }} Items)
+        </h1>
+        
+        {% if items %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for p in items %}
+            <div class="bg-white p-4 rounded-lg shadow-xl hover:shadow-2xl transition duration-300 flex flex-col product-card">
+                
+                <div class="h-48 bg-gray-200 rounded-md mb-3 overflow-hidden flex items-center justify-center">
+                    <img src="https://via.placeholder.com/300x200?text=Wishlist+Item" 
+                         alt="{{ p.title }}" 
+                         class="w-full h-full object-cover opacity-70">
+                </div>
+
+                <h2 class="font-bold text-lg mb-1 text-gray-800">{{ p.title }}</h2>
+                <p class="text-sm text-gray-600 mb-2 truncate text-red-500">
+                    <i class="fas fa-heart"></i> Item Saved!
+                </p>
+                
+                <div class="mt-auto pt-2 border-t border-gray-100">
+                    
+                    <p class="text-sm font-semibold text-gray-700 mb-1">
+                        Added: <span class="font-normal text-gray-500">{{ p.added_time }}</span>
+                    </p>
+                    <p class="text-xl font-extrabold text-green-600 mb-2">
+                        Price: {{ p.price | default('N/A') }} 
+                    </p>
+                    
+                    <div class="flex gap-2 text-sm font-semibold">
+                        
+                        <a href="{{ p.link }}" target="_blank" 
+                           class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition flex items-center justify-center">
+                            <i class="fas fa-external-link-alt mr-1"></i> View Original Listing
+                        </a>
+                        
+                        <button class="bg-gray-300 text-gray-700 p-2 rounded hover:bg-gray-400 transition" 
+                                title="Remove from Wishlist" 
+                                onclick="removeFromWishlist('{{ p.id }}');">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <a href="/?product={{ p.title | urlencode }}" class="block text-center text-blue-600 hover:text-blue-800 hover:underline mt-2 text-sm">
+                        Go to Main Search
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white p-8 text-center rounded-lg shadow-lg mt-10">
+            <i class="fas fa-heart-broken text-6xl text-red-300 mb-4"></i>
+            <p class="text-gray-700 text-xl font-medium">Your wishlist is empty.</p>
+            <a href="/" class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition">Go to Search</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function removeFromWishlist(productId) {
+            if (confirm("Are you sure you want to remove this item?")) {
+                fetch(`/wishlist/remove/${productId}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(data.message);
+                        // Reload the page to update the list
+                        window.location.reload(); 
+                    } else {
+                        alert(`Error: ${data.message}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Remove error:', error);
+                    alert("Network error removing item.");
+                });
+            }
+        }
+    </script>
+</body>
+</html>

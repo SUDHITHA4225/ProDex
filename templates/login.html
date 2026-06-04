@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | PRODEX</title>
+</head>
+<body>
+<div class="login-container">
+    <h1 class="prodex-title">PRODEX</h1>
+
+    {% if error %}
+        <p class="error-message">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('login') }}" class="login-form">
+        <input type="email" name="email" placeholder="Email" required />
+        <input type="password" name="password" placeholder="Password" required />
+        <button type="submit" class="login-btn">Login</button>
+    </form>
+</div>
+
+<style>
+  /* ===== Container ===== */
+  .login-container {
+    text-align: center;
+    margin-top: 100px;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 50px;
+    border-radius: 20px;
+    width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  /* ===== PRODEX Title ===== */
+  .prodex-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 54px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(
+      to right,
+      #4285F4 0%,
+      #EA4335 25%,
+      #FBBC05 50%,
+      #34A853 75%,
+      #EA4335 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+  }
+
+  .login-form input {
+    width: 80%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    outline: none;
+    transition: 0.3s;
+  }
+
+  .login-form input:focus {
+    border-color: #4285F4;
+    box-shadow: 0 0 8px rgba(66, 133, 244, 0.4);
+  }
+
+  .login-btn {
+    width: 85%;
+    padding: 12px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    color: white;
+    font-weight: 600;
+    background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335);
+    background-size: 300%;
+    transition: 0.5s;
+    cursor: pointer;
+  }
+
+  .login-btn:hover {
+    background-position: right center;
+    transform: scale(1.03);
+  }
+
+  .error-message {
+    color: #EA4335;
+    font-weight: 500;
+    margin-bottom: 15px;
+  }
+</style>
+</body>
+</html>
+

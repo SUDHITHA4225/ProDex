@@ -1,0 +1,631 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prodex - Smart Product Aggregator</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+
+
+    <style>
+        /* Custom CSS (as provided previously) */
+        .sticky-filter-sidebar { max-height: calc(100vh - 5rem); overflow-y: auto; }
+        input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: #2563EB; border-radius: 50%; margin-top: -7px; }
+        input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; background: #2563EB; border-radius: 50%; border: none; }
+        input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: #D1D5DB; border-radius: 3px; }
+        input[type="range"]::-moz-range-track { height: 2px; background: #D1D5DB; border-radius: 3px; }
+        
+        /* Voice button animation */
+        .listening { animation: pulse 1s infinite; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+        }
+
+        /* --- NEW/UPDATED: Chatbot Styling --- */
+        #chatbot-window {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 350px;
+            height: 450px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none; 
+            flex-direction: column;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        #chat-messages {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #f9fafb;
+        }
+
+        .chat-message {
+            margin-bottom: 10px;
+            display: flex;
+        }
+
+        .chat-user {
+            justify-content: flex-end;
+        }
+        
+        .chat-user p {
+            background-color: #3b82f6; /* Blue-500 */
+            color: white;
+            padding: 8px 12px;
+            border-radius: 15px 15px 0 15px;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+        
+        .chat-bot p {
+            background-color: #e5e7eb; /* Gray-200 */
+            color: #1f2937; /* Gray-800 */
+            padding: 8px 12px;
+            border-radius: 15px 15px 15px 0;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+
+        .chat-input {
+            border-top: 1px solid #e5e7eb;
+            padding: 10px;
+            display: flex;
+        }
+	footer {
+  background-color: #f8f9fa; /* light grey background */
+  color: #333;
+  text-align: center;
+  padding: 25px 15px;
+  font-size: 0.95rem;
+  border-top: 1px solid #e5e7eb;
+  position: relative;
+  bottom: 0;
+  width: 100%;
+  margin-top: auto;
+}
+
+footer h3 {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+footer a {
+  color: #2563eb;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+footer a:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+
+
+    <header class="bg-white shadow-md sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="/" class="text-2xl font-extrabold text-blue-600 tracking-wider">Prodex</a>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#try-on" class="text-gray-600 hover:text-blue-600 font-medium transition">Virtual Trial</a>
+                <a href="/wishlist" class="text-gray-600 hover:text-blue-600 font-medium transition">Wishlist</a>
+                <a href="/about" class="text-gray-600 hover:text-blue-600 font-medium transition">About</a>
+            </nav>
+            <div class="flex items-center space-x-4">
+
+    <!-- Wishlist icon -->
+    <a href="/wishlist" class="text-gray-600 hover:text-red-500 relative">
+        <i class="fas fa-heart text-xl"></i>
+        {% if session.get('wishlist') and session['wishlist']|length > 0 %}
+            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                {{ session['wishlist']|length }}
+            </span>
+        {% endif %}
+    </a>
+
+    {% if session.get('user_name') %}
+        <!-- When user is logged in -->
+        <div class="flex items-center space-x-3">
+            <span class="text-gray-700 font-medium truncate max-w-[150px]" title="{{ session['user_name'] }}">
+                Hi, {{ session['user_name'] }}
+            </span>
+            <a href="/logout" class="text-gray-500 hover:text-blue-600" title="Logout">
+                <i class="fas fa-sign-out-alt text-xl"></i>
+            </a>
+        </div>
+    {% else %}
+        <!-- When user is not logged in -->
+        <a href="/login-choice" class="text-gray-600 hover:text-blue-600" title="Login">
+            <i class="fas fa-user-circle text-2xl"></i>
+        </a>
+    {% endif %}
+</div>
+
+
+        </div>
+    </header>
+    
+    <main class="container mx-auto px-4 py-12">
+        <h1 class="text-4xl font-extrabold mb-2 text-center text-gray-800">Find Anything. Anywhere.</h1>
+        <p class="text-center text-gray-500 mb-8">Search by text, voice, or image across all major platforms.</p>
+
+
+        <form method="POST" action="/" class="max-w-3xl mx-auto flex bg-white border border-gray-300 rounded-full shadow-lg p-1" id="main-search-form" enctype="multipart/form-data">
+            <input type="text" name="product" placeholder="Describe your product (e.g., 'vintage floral midi dress')" 
+                    value="{{ current_search_query | default('') }}" 
+                    class="flex-grow p-3 focus:outline-none rounded-l-full bg-transparent text-gray-700" id="search-input">
+            
+            <input type="file" id="image-upload" name="image_upload" accept="image/*" style="display: none;">
+
+
+            <button type="button" title="Search by Voice" id="voice-search-btn" class="p-3 text-gray-600 hover:text-blue-600 transition"><i class="fas fa-microphone text-xl"></i></button>
+            <button type="button" title="Search by Image" id="image-search-btn" class="p-3 text-gray-600 hover:text-blue-600 transition"><i class="fas fa-camera text-xl"></i></button>
+            
+            <button type="submit" class="bg-blue-600 text-white px-6 rounded-full hover:bg-blue-700 font-semibold transition flex items-center justify-center">
+                <i class="fas fa-search mr-2"></i> Search
+            </button>
+        </form>
+    
+        {% if products or current_search_query %}
+        <div class="mt-12 flex flex-col lg:flex-row gap-8">
+            
+            <aside class="w-full lg:w-1/4 bg-white p-6 rounded-lg shadow-lg sticky top-20 sticky-filter-sidebar">
+                
+                <div class="mb-4">
+    <label for="max-price-input" class="block text-sm font-semibold mb-2">
+        Max Price (₹)
+        <span id="max-price-value" class="font-bold text-blue-600 ml-2">₹ {{ max_price_filter | default('1000') }}</span>
+    </label>
+    
+    <input type="range" 
+           id="max-price-input" 
+           min="100" 
+           max="50000" 
+           value="{{ max_price_filter | default('1000') }}" 
+           step="100" 
+           oninput="document.getElementById('max-price-value').innerText = '₹ ' + this.value;
+           document.getElementById('max-price-text').value = this.value;"
+           class="w-full"> 
+    
+    <div class="flex justify-between text-xs mt-1 text-gray-600">
+        <span>₹ 100</span>
+        <span>₹ 50,000+</span>
+    </div>
+    
+    <input type="number" 
+           id="max-price-text"
+           value="{{ max_price_filter | default('1000') }}"
+           min="100"
+           max="50000"
+           onchange="document.getElementById('max-price-input').value = this.value; document.getElementById('max-price-value').innerText = '₹ ' + this.value;"
+           placeholder="Enter Max Price"
+           class="w-full mt-2 p-2 border border-gray-300 rounded text-sm focus:ring-blue-500 focus:border-blue-500">
+</div>
+
+
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-2">Platforms</label>
+                    <div class="space-y-2" id="platform-filters">
+                        <label class="flex items-center text-gray-700">
+                            <input type="checkbox" name="platforms" value="amazon.in" class="rounded mr-2 text-blue-600" 
+                                    {% if 'amazon.in' in selected_platforms %}checked{% endif %}> Amazon
+                        </label>
+                        <label class="flex items-center text-gray-700">
+                            <input type="checkbox" name="platforms" value="etsy.com" class="rounded mr-2 text-blue-600"
+                                    {% if 'etsy.com' in selected_platforms %}checked{% endif %}> Etsy
+                        </label>
+                        <label class="flex items-center text-gray-700">
+                            <input type="checkbox" name="platforms" value="flipkart.com" class="rounded mr-2 text-blue-600"
+                                    {% if 'flipkart.com' in selected_platforms %}checked{% endif %}> Flipkart
+                        </label>
+                        <label class="flex items-center text-gray-700">
+                            <input type="checkbox" name="platforms" value="limeroad.com" class="rounded mr-2 text-blue-600"
+                                    {% if 'limeroad.com' in selected_platforms %}checked{% endif %}> Limeroad
+                        </label>
+                        <label class="flex items-center text-gray-700">
+                            <input type="checkbox" name="platforms" value="myntra.com" class="rounded mr-2 text-blue-600"
+                                    {% if 'myntra.com' in selected_platforms %}checked{% endif %}> Myntra
+                        </label>
+                        <label class="flex items-center text-gray-700">
+                            <input type="checkbox" name="platforms" value="ajio.com" class="rounded mr-2 text-blue-600"
+                                    {% if 'ajio.com' in selected_platforms %}checked{% endif %}> Ajio
+                        </label>
+                        <label class="flex items-center text-gray-700">
+                            <input type="checkbox" name="platforms" value="meesho.com" class="rounded mr-2 text-blue-600"
+                                    {% if 'ajio.com' in selected_platforms %}checked{% endif %}> Ajio
+                        </label>
+                        <label class="flex items-center text-gray-700">
+                            <input type="checkbox" name="platforms" value="others" class="rounded mr-2 text-blue-600"
+                                    {% if 'others' in selected_platforms %}checked{% endif %}> Others
+                        </label>
+                    </div>
+                </div>
+
+
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-2">Category</label>
+                    <select class="w-full p-2 border rounded text-gray-700">
+                        <option>Dresses</option>
+                        <option>Jewelry</option>
+                        <option>Electronics</option>
+                        <option>Home Appliances</option>
+                    </select>
+                </div>
+
+
+                <button type="button" id="apply-filters-btn" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition mt-2">
+                    Apply Filters
+                </button>
+            </aside>
+
+
+            <section class="w-full lg:w-3/4">
+                <div class="flex justify-between items-center mb-4 p-2 bg-white rounded-lg shadow-sm">
+    <p class="text-gray-600">Found {{ products | length }} results for "{{ current_search_query | default('products') }}"</p>
+    
+    <select id="sort-order-select" name="sort_by" 
+            onchange="submitFullForm();" 
+            class="p-2 border rounded text-sm text-gray-700">
+        
+        <option value="relevance" {% if sort_by == 'relevance' %}selected{% endif %}>Sort by: Relevance</option>
+        <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Sort by: Price (Lowest)</option>
+        <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Sort by: Price (Highest)</option>
+    </select>
+</div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for p in products %}
+                    <div class="bg-white p-4 rounded-lg shadow-xl hover:shadow-2xl transition duration-300 flex flex-col">
+                        <div class="h-48 bg-gray-200 rounded-md mb-3 overflow-hidden flex items-center justify-center">
+                            <img src="{{ p.image }}" alt="{{ p.title }}" class="w-full h-full object-cover">
+                        </div>
+
+
+                        <h2 class="font-bold text-lg mb-1 text-gray-800">{{ p.title }}</h2>
+                        <p class="text-sm text-gray-600 mb-2 truncate">🌐 {{ p.site }}</p>
+                        
+                        <div class="mt-auto pt-2 border-t border-gray-100">
+                            <p class="text-xl font-extrabold text-green-600 mb-2">
+                                {{ p.price | default('₹ 1999') }} 
+                            </p>
+                            
+                            <div class="flex gap-2 text-sm font-semibold">
+                                <form action="/try-on/{{ p.id }}" method="POST" enctype="multipart/form-data" class="flex-1 try-on-form">
+                                <input type="hidden" name="product_image_url" value="{{ p.image }}">
+                                 <input type="file" name="user_image" class="hidden-file-input" accept="image/*" style="display: none;" required>
+                                 <button type="button" class="w-full try-on-button bg-yellow-400 text-gray-900 py-2 rounded hover:bg-yellow-500 transition">
+                                      <i class="fas fa-magic mr-1"></i> Trial Version
+                                     </button>
+                                </form>
+                                <button class="bg-red-500 text-white p-2 rounded hover:bg-red-600 transition" 
+                                        title="Add to Wishlist (Price Drop Alert)"
+                                        onclick="addToWishlist(
+                                            '{{ p.id }}', 
+                                            '{{ p.title | e }}', 
+                                            '{{ p.link | e }}',
+                                            '{{ p.price | default('₹ 1999') | e }}'
+                                        );">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                            
+                            <a href="{{ p.link }}" target="_blank" class="block text-center text-blue-600 hover:text-blue-800 hover:underline mt-2 text-sm">
+                                View Original Listing <i class="fas fa-external-link-alt ml-1 text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+        {% else %}
+        <p class="text-center text-gray-500 mt-12">Start your search above to find products from various platforms!</p>
+        {% endif %}
+    </main>
+
+
+    <div id="chatbot-window" class="fixed bottom-20 right-6 w-80 bg-white shadow-2xl rounded-lg border border-gray-300 hidden flex flex-col z-50">
+        <div class="bg-blue-600 text-white p-3 rounded-t-lg flex justify-between items-center">
+            <h3 class="font-bold">Prodex AI Support</h3>
+            <button id="close-chat-btn" class="text-white hover:text-gray-200 text-xl font-light">&times;</button>
+        </div>
+        
+        <div id="chat-messages" class="p-3 flex-1 overflow-y-auto text-sm flex flex-col h-full" style="max-height: 350px;">
+             <div class="chat-message chat-bot">
+                <p>Hello! I'm here to help you find products and troubleshoot features like the Virtual Trial.</p>
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <input type="text" id="chat-input-box" placeholder="Ask a question..." class="flex-grow p-2 border border-gray-300 rounded-l-md focus:outline-none" onkeypress="if(event.key === 'Enter') { sendMessage(); }">
+            <button type="button" id="send-chat-btn" class="bg-blue-600 text-white px-4 py-2 rounded-r-md hover:bg-blue-700 transition">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+    <button id="toggle-chat-btn" class="fixed bottom-6 right-6 bg-blue-600 text-white w-14 h-14 rounded-full shadow-2xl hover:bg-blue-700 transition flex items-center justify-center z-50" title="Chat with Prodex Support">
+        <i class="fas fa-comment-dots text-2xl"></i>
+    </button>
+
+
+    <footer>
+    <h3>Contact Info</h3>
+    <p>
+      Email:
+      <a href="mailto:23P31A0503@acet.ac.in" style="color: #007bff; text-decoration: none;">
+        support@prodex.com
+      </a>
+    </p>
+    <p>
+      Phone:
+      <a href="tel:+91987654321" style="color: #007bff; text-decoration: none;">
+        +91 987654321
+      </a>
+    </p>
+  </footer>
+
+
+    <script>
+        const form = document.getElementById('main-search-form');
+        const searchInput = document.getElementById('search-input');
+        const voiceBtn = document.getElementById('voice-search-btn');
+        const imageBtn = document.getElementById('image-search-btn');
+        const imageUpload = document.getElementById('image-upload');
+        
+        // --- NEW CHATBOT ELEMENTS ---
+        const chatWindow = document.getElementById('chatbot-window');
+        const toggleChatBtn = document.getElementById('toggle-chat-btn');
+        const closeChatBtn = document.getElementById('close-chat-btn');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInputBox = document.getElementById('chat-input-box');
+        const sendChatBtn = document.getElementById('send-chat-btn');
+        // ----------------------------
+
+
+        // 🌟 1. Voice Search Integration 🌟
+        if ('webkitSpeechRecognition' in window) {
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+
+
+            voiceBtn.addEventListener('click', () => {
+                searchInput.placeholder = 'Listening... Speak now!';
+                voiceBtn.classList.add('listening', 'text-red-600');
+                recognition.start();
+            });
+
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                searchInput.value = transcript;
+                searchInput.placeholder = "Describe your product (e.g., 'vintage floral midi dress')";
+                voiceBtn.classList.remove('listening', 'text-red-600');
+                form.submit(); // Automatically submit the form
+            };
+
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                searchInput.placeholder = "Describe your product (e.g., 'vintage floral midi dress')";
+                voiceBtn.classList.remove('listening', 'text-red-600');
+            };
+            
+            recognition.onend = () => {
+                voiceBtn.classList.remove('listening', 'text-red-600');
+            };
+
+
+        } else {
+            voiceBtn.addEventListener('click', () => {
+                alert('Voice Search not supported in your browser (Requires Chrome/Edge).');
+            });
+        }
+
+
+        // 🌟 2. Image Search Integration 🌟
+        imageBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent form submission
+            imageUpload.click(); // Trigger the hidden file input
+        });
+
+
+        imageUpload.addEventListener('change', () => {
+            if (imageUpload.files.length > 0) {
+                form.submit(); 
+            }
+        });
+
+
+        // 🌟 3. VIRTUAL TRY-ON UPLOAD LOGIC 🌟
+       // Listener for the hidden file inputs created for each product card
+            document.querySelectorAll('.hidden-file-input').forEach(input => {
+                input.addEventListener('change', (event) => {
+                    if (event.target.files.length > 0) {
+                        const form = event.target.closest('.try-on-form');
+                        const button = form.querySelector('.try-on-button');
+                        // Visual feedback during upload
+                        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Uploading...';
+                        button.disabled = true;
+                        form.submit();
+                    }
+                });
+            });
+
+
+        // Listener for the visible Trial Version button to trigger the hidden file input
+        document.querySelectorAll('.try-on-button').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const form = event.target.closest('.try-on-form');
+                form.querySelector('.hidden-file-input').click();
+            });
+        });
+        
+        // 🌟 4. Universal Filter & Sort Submission Function 🌟
+        function submitFullForm() {
+            // 1. Get current filter values
+            const maxPrice = document.getElementById('max-price-input').value;
+            const sortOrder = document.getElementById('sort-order-select').value;
+            const platformFilters = document.getElementById('platform-filters').querySelectorAll('input[type="checkbox"]:checked');
+            
+            // Clear old filter-specific hidden inputs before creating new ones
+            form.querySelectorAll('.filter-js-input').forEach(input => input.remove());
+
+
+            // --- Price Input ---
+            const priceInput = document.createElement('input');
+            priceInput.type = 'hidden';
+            priceInput.name = 'max_price';
+            priceInput.value = maxPrice;
+            priceInput.setAttribute('class', 'filter-js-input');
+            form.appendChild(priceInput);
+
+
+            // --- Sort Input ---
+            const sortInput = document.createElement('input'); 
+            sortInput.type = 'hidden';
+            sortInput.name = 'sort_by';
+            sortInput.value = sortOrder;
+            sortInput.setAttribute('class', 'filter-js-input');
+            form.appendChild(sortInput);
+            
+            // --- Platform Inputs ---
+            platformFilters.forEach(checkbox => {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'platforms';
+                hiddenInput.value = checkbox.value;
+                hiddenInput.setAttribute('class', 'filter-js-input'); 
+                form.appendChild(hiddenInput);
+            });
+
+
+            // Submit the form with all current filter states
+            form.submit();
+        }
+
+
+        // Attach the new function to the "Apply Filters" button
+        document.getElementById('apply-filters-btn').addEventListener('click', submitFullForm);
+
+
+        // 🌟 5. Wishlist Integration 🌟
+        function addToWishlist(productId, productTitle, productLink, productPrice) { 
+            // Send an asynchronous request to the server to add the item
+            fetch(`/wishlist/add/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    title: productTitle,
+                    link: productLink,    // SENDING LINK
+                    price: productPrice   // SENDING PRICE
+                }) 
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update UI immediately (simulated for this simple example)
+                    alert(`✅ Added to Wishlist:\n${productTitle}`);
+                } else {
+                    alert(`⚠️ ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Wishlist error:', error);
+                alert("❌ Network error adding to wishlist.");
+            });
+        }
+
+        // 🌟 6. CHATBOT LOGIC 🌟
+        toggleChatBtn.addEventListener('click', () => {
+            chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
+            if (chatWindow.style.display === 'flex') {
+                chatInputBox.focus();
+            }
+        });
+
+        closeChatBtn.addEventListener('click', () => {
+            chatWindow.style.display = 'none';
+        });
+
+        sendChatBtn.addEventListener('click', sendMessage);
+
+        function createMessageElement(message, sender) {
+            const div = document.createElement('div');
+            // Use flex utility for proper message alignment
+            div.className = `chat-message chat-${sender}`;
+            div.innerHTML = `<p>${message}</p>`;
+            return div;
+        }
+
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = chatInputBox.value.trim();
+            if (!message) return;
+
+            // 1. Display user message
+            chatMessages.appendChild(createMessageElement(message, 'user'));
+            chatInputBox.value = '';
+            scrollToBottom();
+
+            // 2. Display 'Typing...' placeholder
+            const typingMsg = createMessageElement('Typing...', 'bot');
+            typingMsg.id = 'typing-indicator';
+            chatMessages.appendChild(typingMsg);
+            scrollToBottom();
+            
+            try {
+                // 3. Call Flask Chat API (FIXED: Uses relative path /api/chat)
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+                
+                // 4. Remove typing indicator and display bot response
+                if (document.getElementById('typing-indicator')) {
+                    document.getElementById('typing-indicator').remove();
+                }
+
+                if (data.status === 'success') {
+                    chatMessages.appendChild(createMessageElement(data.reply, 'bot'));
+                } else {
+                     chatMessages.appendChild(createMessageElement("Server error processing request.", 'bot'));
+                }
+                
+                scrollToBottom();
+
+            } catch (error) {
+                console.error('Chat API Error:', error);
+                 if (document.getElementById('typing-indicator')) {
+                    document.getElementById('typing-indicator').remove();
+                }
+                chatMessages.appendChild(createMessageElement("Sorry, I'm having trouble connecting to the support server.", 'bot'));
+                scrollToBottom();
+            }
+        }
+    </script>
+</body>
+</html>
